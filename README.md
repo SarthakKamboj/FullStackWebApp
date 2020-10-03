@@ -1,0 +1,1 @@
+Learned about the fundamentals of Apollo on the backend and frontend.

@@ -1,12 +1,30 @@
 import { Car } from './../entities/Car';
 import { MyContext, CarType } from './../types';
-import { Arg, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql';
+import { Arg, Ctx, Field, InputType, Int, Mutation, Query, Resolver } from 'type-graphql';
 
 let cars: CarType[] = [
 	{ yearMade: 2002, company: 'Honda', name: 'Civic', cost: 15000, maxSpeed: 100 },
 	{ yearMade: 2014, company: 'Toyota', name: 'Rav4', cost: 20000, maxSpeed: 120 },
 	{ yearMade: 2020, company: 'Mercedes', name: 'Benz', cost: 75000, maxSpeed: 180 }
 ];
+
+@InputType()
+class createCarInputType {
+	@Field(()=>Int)
+	yearMade!: number,
+
+	@Field(()=>String)
+	company: string,
+
+	@Field(()=>String)
+	name: string,
+
+	@Field(()=>Int)
+	cost:number,
+
+	@Field(()=>Int)
+	maxSpeed: number,	
+}
 
 @Resolver()
 export class CarResolver {
@@ -25,23 +43,14 @@ export class CarResolver {
 
 	@Mutation(() => Car)
 	createCar(
-		@Arg('yearMade', () => Int)
-		yearMade: number,
-		@Arg('company', () => String)
-		company: string,
-		@Arg('name', () => String)
-		name: String,
-		@Arg('cost', () => Int)
-		cost: number,
-		@Arg('maxSpeed', () => Int)
-		maxSpeed: number
+		@Arg("options",()=>createCarInputType) options:createCarInputType 
 	) {
 		const car: CarType = {
-			yearMade,
-			company,
-			name,
-			cost,
-			maxSpeed
+			yearMade: options.yearMade,
+			company: options.company,
+			name: options.name,
+			cost: options.cost,
+			maxSpeed: options.maxSpeed
 		};
 
 		cars.push(car);

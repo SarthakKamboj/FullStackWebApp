@@ -20,6 +20,31 @@ let cars = [
     { yearMade: 2014, company: 'Toyota', name: 'Rav4', cost: 20000, maxSpeed: 120 },
     { yearMade: 2020, company: 'Mercedes', name: 'Benz', cost: 75000, maxSpeed: 180 }
 ];
+let createCarInputType = class createCarInputType {
+};
+__decorate([
+    type_graphql_1.Field(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], createCarInputType.prototype, "yearMade", void 0);
+__decorate([
+    type_graphql_1.Field(() => String),
+    __metadata("design:type", String)
+], createCarInputType.prototype, "company", void 0);
+__decorate([
+    type_graphql_1.Field(() => String),
+    __metadata("design:type", String)
+], createCarInputType.prototype, "name", void 0);
+__decorate([
+    type_graphql_1.Field(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], createCarInputType.prototype, "cost", void 0);
+__decorate([
+    type_graphql_1.Field(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], createCarInputType.prototype, "maxSpeed", void 0);
+createCarInputType = __decorate([
+    type_graphql_1.InputType()
+], createCarInputType);
 let CarResolver = class CarResolver {
     cars({ em }) {
         return cars;
@@ -27,13 +52,13 @@ let CarResolver = class CarResolver {
     car(yearMade) {
         return cars.find((car) => car.yearMade === yearMade);
     }
-    createCar(yearMade, company, name, cost, maxSpeed) {
+    createCar(options) {
         const car = {
-            yearMade,
-            company,
-            name,
-            cost,
-            maxSpeed
+            yearMade: options.yearMade,
+            company: options.company,
+            name: options.name,
+            cost: options.cost,
+            maxSpeed: options.maxSpeed
         };
         cars.push(car);
         return car;
@@ -67,13 +92,9 @@ __decorate([
 ], CarResolver.prototype, "car", null);
 __decorate([
     type_graphql_1.Mutation(() => Car_1.Car),
-    __param(0, type_graphql_1.Arg('yearMade', () => type_graphql_1.Int)),
-    __param(1, type_graphql_1.Arg('company', () => String)),
-    __param(2, type_graphql_1.Arg('name', () => String)),
-    __param(3, type_graphql_1.Arg('cost', () => type_graphql_1.Int)),
-    __param(4, type_graphql_1.Arg('maxSpeed', () => type_graphql_1.Int)),
+    __param(0, type_graphql_1.Arg("options", () => createCarInputType)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, String, String, Number, Number]),
+    __metadata("design:paramtypes", [createCarInputType]),
     __metadata("design:returntype", void 0)
 ], CarResolver.prototype, "createCar", null);
 __decorate([

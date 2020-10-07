@@ -9,6 +9,7 @@ import { MikroORM } from '@mikro-orm/core';
 import microConfig from './mikro-orm.config';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
+require("dotenv").config()
 
 const main = async () => {
 	const orm = await MikroORM.init(microConfig);

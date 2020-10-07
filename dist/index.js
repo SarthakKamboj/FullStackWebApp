@@ -32,7 +32,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             resolvers: [hello_1.HelloResolver, posts_1.PostResolver, cars_1.CarResolver, user_1.UserResolver],
             validate: false
         }),
-        context: () => ({ em: orm.em })
+        context: ({ req, res }) => ({ req, res, em: orm.em })
     });
     apolloServer.applyMiddleware({ app });
     app.listen(process.env.PORT, () => {

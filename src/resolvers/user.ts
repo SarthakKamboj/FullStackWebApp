@@ -1,7 +1,9 @@
 import { User } from './../entities/User';
 import bcrypt from 'bcrypt';
 import { MyContext } from './../types';
-import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } from 'type-graphql';
+import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver, UseMiddleware } from 'type-graphql';
+import { createAccessToken, createRefreshToken } from "../auth";
+import { isAuth } from "../isAuth"
 
 @InputType()
 class UsernamePasswordInput {
@@ -15,10 +17,10 @@ class UsernamePasswordInput {
 @ObjectType()
 class FieldError {
 	  @Field(()=>String)
-	  field: string,
+	  field: string;
 
 	  @Field(()=>String)
-	  message: string,
+	  message: string;
 }
 
 @ObjectType()
@@ -28,6 +30,9 @@ class UserResponse {
 
 	@Field(() => User, { nullable: true })
 	user?: User;
+
+	@Field(() => String, {nullable: true})
+	accessToken?: string;
 }
 
 @Resolver()
@@ -37,10 +42,18 @@ export class UserResolver {
 		return em.find(User, {});
 	}
 
+	@Query(() => String)
+	@UseMiddleware(isAuth)
+	test_jwt(
+		@Ctx() {payload}:MyContext
+	):string {
+		return `your user id is ${payload?.userId}`;
+	}
+
 	@Mutation(() => UserResponse)
 	async login(
 		@Arg('options',()=>UsernamePasswordInput) options: UsernamePasswordInput,
-		@Ctx() { em }: MyContext
+		@Ctx() { em, res }: MyContext
 	): Promise<UserResponse> {
 		const user = await em.findOne(User, { username:options.username });
 		if (!user) {
@@ -60,8 +73,12 @@ export class UserResolver {
 				}]
 			}
 		}
+
+		res.cookie("jid",createRefreshToken(user), {httpOnly:true});
+
 		return {
-			user
+			user,
+			accessToken: createAccessToken(user),
 		} 
 	}
 
@@ -89,7 +106,22 @@ export class UserResolver {
 		}
 		const hashedPassword: string = await bcrypt.hash(options.password, 10);
 		const user = em.create(User, { username: options.username, password: hashedPassword });
-		await em.persistAndFlush(user);
-		return {user}
+		try {
+			await em.persistAndFlush(user);
+		} catch(err) {
+			if (err.code === "23505") {
+				return {
+					errors: [
+						{
+							field:"username", 
+							message:"account with this username already exists"
+						}
+					]
+				}
+			}
+		}
+		return {
+			user
+		}
 	}
 }

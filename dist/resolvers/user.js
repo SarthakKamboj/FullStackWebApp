@@ -28,6 +28,8 @@ exports.UserResolver = void 0;
 const User_1 = require("./../entities/User");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const type_graphql_1 = require("type-graphql");
+const auth_1 = require("../auth");
+const isAuth_1 = require("../isAuth");
 let UsernamePasswordInput = class UsernamePasswordInput {
 };
 __decorate([
@@ -64,6 +66,10 @@ __decorate([
     type_graphql_1.Field(() => User_1.User, { nullable: true }),
     __metadata("design:type", User_1.User)
 ], UserResponse.prototype, "user", void 0);
+__decorate([
+    type_graphql_1.Field(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], UserResponse.prototype, "accessToken", void 0);
 UserResponse = __decorate([
     type_graphql_1.ObjectType()
 ], UserResponse);
@@ -71,7 +77,10 @@ let UserResolver = class UserResolver {
     users({ em }) {
         return em.find(User_1.User, {});
     }
-    login(options, { em }) {
+    test_jwt({ payload }) {
+        return `your user id is ${payload === null || payload === void 0 ? void 0 : payload.userId}`;
+    }
+    login(options, { em, res }) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield em.findOne(User_1.User, { username: options.username });
             if (!user) {
@@ -91,8 +100,10 @@ let UserResolver = class UserResolver {
                         }]
                 };
             }
+            res.cookie("jid", auth_1.createRefreshToken(user), { httpOnly: true });
             return {
-                user
+                user,
+                accessToken: auth_1.createAccessToken(user),
             };
         });
     }
@@ -116,8 +127,24 @@ let UserResolver = class UserResolver {
             }
             const hashedPassword = yield bcrypt_1.default.hash(options.password, 10);
             const user = em.create(User_1.User, { username: options.username, password: hashedPassword });
-            yield em.persistAndFlush(user);
-            return { user };
+            try {
+                yield em.persistAndFlush(user);
+            }
+            catch (err) {
+                if (err.code === "23505") {
+                    return {
+                        errors: [
+                            {
+                                field: "username",
+                                message: "account with this username already exists"
+                            }
+                        ]
+                    };
+                }
+            }
+            return {
+                user
+            };
         });
     }
 };
@@ -128,6 +155,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "users", null);
+__decorate([
+    type_graphql_1.Query(() => String),
+    type_graphql_1.UseMiddleware(isAuth_1.isAuth),
+    __param(0, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", String)
+], UserResolver.prototype, "test_jwt", null);
 __decorate([
     type_graphql_1.Mutation(() => UserResponse),
     __param(0, type_graphql_1.Arg('options', () => UsernamePasswordInput)),

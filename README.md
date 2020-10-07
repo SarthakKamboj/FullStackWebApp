@@ -1,1 +1,1 @@
-Learned about the fundamentals of Apollo on the backend and frontend.
+Learned about the fundamentals of Apollo on the backend and frontend. Implemented JWT creation and verification in a GraphQL environment.

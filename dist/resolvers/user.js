@@ -76,19 +76,23 @@ let UserResolver = class UserResolver {
             const user = yield em.findOne(User_1.User, { username: options.username });
             if (!user) {
                 return {
-                    errors: [{
-                            field: "username",
-                            message: "username does not exist"
-                        }]
+                    errors: [
+                        {
+                            field: 'username',
+                            message: 'username does not exist'
+                        }
+                    ]
                 };
             }
             const correctPassword = yield bcrypt_1.default.compare(options.password, user.password);
             if (!correctPassword) {
                 return {
-                    errors: [{
-                            field: "password",
-                            message: "incorrect password"
-                        }]
+                    errors: [
+                        {
+                            field: 'password',
+                            message: 'incorrect password'
+                        }
+                    ]
                 };
             }
             return {
@@ -100,23 +104,36 @@ let UserResolver = class UserResolver {
         return __awaiter(this, void 0, void 0, function* () {
             if (options.username.length <= 2) {
                 return {
-                    errors: [{
-                            field: "username",
-                            message: "username is not long enoough"
-                        }]
+                    errors: [
+                        {
+                            field: 'username',
+                            message: 'username is not long enoough'
+                        }
+                    ]
                 };
             }
             if (options.password.length <= 2) {
                 return {
-                    errors: [{
-                            field: "password",
-                            message: "password is not long enough"
-                        }]
+                    errors: [
+                        {
+                            field: 'password',
+                            message: 'password is not long enough'
+                        }
+                    ]
                 };
             }
             const hashedPassword = yield bcrypt_1.default.hash(options.password, 10);
             const user = em.create(User_1.User, { username: options.username, password: hashedPassword });
-            yield em.persistAndFlush(user);
+            try {
+                yield em.persistAndFlush(user);
+            }
+            catch (err) {
+                if (err.name === 'UniqueConstraintViolationException') {
+                    return {
+                        errors: [{ field: 'username', message: 'a user with this username already exists' }]
+                    };
+                }
+            }
             return { user };
         });
     }

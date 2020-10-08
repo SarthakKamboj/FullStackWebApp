@@ -14,16 +14,16 @@ class UsernamePasswordInput {
 
 @ObjectType()
 class FieldError {
-	  @Field(()=>String)
-	  field: string,
+	@Field(() => String)
+	field: string;
 
-	  @Field(()=>String)
-	  message: string,
+	@Field(() => String)
+	message: string;
 }
 
 @ObjectType()
 class UserResponse {
-	@Field(() => [FieldError], { nullable: true })
+	@Field(() => [ FieldError ], { nullable: true })
 	errors?: FieldError[];
 
 	@Field(() => User, { nullable: true })
@@ -39,30 +39,35 @@ export class UserResolver {
 
 	@Mutation(() => UserResponse)
 	async login(
-		@Arg('options',()=>UsernamePasswordInput) options: UsernamePasswordInput,
+		@Arg('options', () => UsernamePasswordInput)
+		options: UsernamePasswordInput,
 		@Ctx() { em }: MyContext
 	): Promise<UserResponse> {
-		const user = await em.findOne(User, { username:options.username });
+		const user = await em.findOne(User, { username: options.username });
 		if (!user) {
 			return {
-				errors: [{
-					field: "username",
-					message: "username does not exist" 
-				}]
-			} 
+				errors: [
+					{
+						field: 'username',
+						message: 'username does not exist'
+					}
+				]
+			};
 		}
 		const correctPassword: boolean = await bcrypt.compare(options.password, user.password);
 		if (!correctPassword) {
 			return {
-				errors: [{
-					field: "password",
-					message:"incorrect password"
-				}]
-			}
+				errors: [
+					{
+						field: 'password',
+						message: 'incorrect password'
+					}
+				]
+			};
 		}
 		return {
 			user
-		} 
+		};
 	}
 
 	@Mutation(() => UserResponse)
@@ -71,25 +76,37 @@ export class UserResolver {
 		options: UsernamePasswordInput,
 		@Ctx() { em }: MyContext
 	): Promise<UserResponse> {
-		if (options.username.length  <= 2) {
+		if (options.username.length <= 2) {
 			return {
-				errors: [{
-					field: "username",
-					message: "username is not long enoough"
-				}]
-			}
+				errors: [
+					{
+						field: 'username',
+						message: 'username is not long enoough'
+					}
+				]
+			};
 		}
 		if (options.password.length <= 2) {
 			return {
-				errors: [{
-					field: "password",
-					message: "password is not long enough"
-				}]
-			}
+				errors: [
+					{
+						field: 'password',
+						message: 'password is not long enough'
+					}
+				]
+			};
 		}
 		const hashedPassword: string = await bcrypt.hash(options.password, 10);
 		const user = em.create(User, { username: options.username, password: hashedPassword });
-		await em.persistAndFlush(user);
-		return {user}
+		try {
+			await em.persistAndFlush(user);
+		} catch (err) {
+			if (err.name === 'UniqueConstraintViolationException') {
+				return {
+					errors: [ { field: 'username', message: 'a user with this username already exists' } ]
+				};
+			}
+		}
+		return { user };
 	}
 }

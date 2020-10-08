@@ -1,3 +1,5 @@
-.env
-node_modules
+backend/.env
+backend/node_modules
 libraries.txt
+frontend/.next
+frontend/node_modules

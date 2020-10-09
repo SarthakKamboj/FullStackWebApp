@@ -29,7 +29,6 @@ const auth_1 = require("./auth");
 require("dotenv").config();
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const orm = yield core_1.MikroORM.init(mikro_orm_config_1.default);
-    orm.getMigrator().up();
     const app = express_1.default();
     app.use(cookie_parser_1.default());
     app.post("/refresh_token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {

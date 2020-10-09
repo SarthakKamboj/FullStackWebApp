@@ -167,15 +167,6 @@ let UserResolver = class UserResolver {
                 yield em.persistAndFlush(user);
             }
             catch (err) {
-<<<<<<< HEAD:dist/resolvers/user.js
-                if (err.name === 'UniqueConstraintViolationException') {
-                    return {
-                        errors: [{ field: 'username', message: 'a user with this username already exists' }]
-                    };
-                }
-            }
-            return { user };
-=======
                 if (err.code === "23505") {
                     return {
                         errors: [
@@ -190,7 +181,6 @@ let UserResolver = class UserResolver {
             return {
                 user
             };
->>>>>>> 6d7387bb5ef62e91343fde8213a2893d4906b4d9:backend/dist/resolvers/user.js
         });
     }
 };

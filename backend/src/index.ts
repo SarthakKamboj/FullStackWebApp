@@ -21,7 +21,7 @@ require("dotenv").config()
 
 const main = async () => {
 	const orm = await MikroORM.init(microConfig);
-	orm.getMigrator().up();
+	// orm.getMigrator().up();
 
 	const app = express();
 

@@ -1,3 +1,4 @@
+import { EntityManager } from '@mikro-orm/postgresql';
 import { User } from './../entities/User';
 import bcrypt from 'bcrypt';
 import { MyContext } from './../types';
@@ -116,7 +117,7 @@ export class UserResolver {
 	async register(
 		@Arg('options', () => UsernamePasswordInput)
 		options: UsernamePasswordInput,
-		@Ctx() { em }: MyContext
+		@Ctx() { em, res }: MyContext
 	): Promise<UserResponse> {
 		if (options.username.length <= 2) {
 			return {
@@ -139,10 +140,14 @@ export class UserResolver {
 			};
 		}
 		const hashedPassword: string = await bcrypt.hash(options.password, 10);
-		const user = em.create(User, { username: options.username, password: hashedPassword });
+		let user;
 		try {
-			await em.persistAndFlush(user);
+			const result = await (em as EntityManager).createQueryBuilder(User).getKnexQuery().insert({
+				username: options.username, password: hashedPassword, created_at: new Date(), updated_at: new Date()
+			}).returning("*")
+			user = result[0];
 		} catch(err) {
+			console.log(err);
 			if (err.code === "23505") {
 				return {
 					errors: [
@@ -154,8 +159,10 @@ export class UserResolver {
 				}
 			}
 		}
+		sendRefreshToken(res,createRefreshToken(user));
 		return {
-			user
+			user,
+			accessToken: createAccessToken(user),
 		}
 	}
 }

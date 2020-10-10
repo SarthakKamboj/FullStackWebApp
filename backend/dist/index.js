@@ -26,10 +26,15 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const User_1 = require("./entities/User");
 const auth_1 = require("./auth");
+const cors_1 = __importDefault(require("cors"));
 require("dotenv").config();
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const orm = yield core_1.MikroORM.init(mikro_orm_config_1.default);
     const app = express_1.default();
+    app.use(cors_1.default({
+        origin: "http://localhost:3000",
+        credentials: true
+    }));
     app.use(cookie_parser_1.default());
     app.post("/refresh_token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const refreshToken = req.cookies.jid;
@@ -62,7 +67,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         }),
         context: ({ req, res }) => ({ req, res, em: orm.em })
     });
-    apolloServer.applyMiddleware({ app });
+    apolloServer.applyMiddleware({ app, cors: false });
     app.listen(process.env.PORT, () => {
         console.log(`listening on PORT ${process.env.PORT}`);
     });

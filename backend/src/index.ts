@@ -13,6 +13,7 @@ import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import { User } from './entities/User';
 import { createAccessToken, createRefreshToken, sendRefreshToken } from './auth';
+import cors from "cors";
 // import redis from "redis";
 // import session from "express-session";
 // import connectRedis from "connect-redis";
@@ -25,6 +26,12 @@ const main = async () => {
 
 	const app = express();
 
+	app.use(
+		cors({
+			origin: "http://localhost:3000",
+			credentials: true
+		})
+	)
 	app.use(cookieParser());
 
 	// const RedisStore = connectRedis(session);
@@ -79,7 +86,7 @@ const main = async () => {
 		context: ({req,res}) => ({ req, res, em: orm.em })
 	});
 
-	apolloServer.applyMiddleware({ app });
+	apolloServer.applyMiddleware({ app, cors: false });
 
 	app.listen(process.env.PORT, () => {
 		console.log(`listening on PORT ${process.env.PORT}`);

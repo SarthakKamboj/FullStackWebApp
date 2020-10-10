@@ -160,6 +160,7 @@ export class UserResolver {
 			}
 		}
 		sendRefreshToken(res,createRefreshToken(user));
+		console.log(user.username);
 		return {
 			user,
 			accessToken: createAccessToken(user),

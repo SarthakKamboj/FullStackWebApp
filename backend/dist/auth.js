@@ -13,11 +13,14 @@ exports.createAccessToken = (user) => {
     return accessToken;
 };
 exports.createRefreshToken = (user) => {
+    console.log(user);
     const payload = {
         userId: user.id,
-        tokenVersion: user.tokenVersion,
+        tokenVersion: user.token_version,
     };
-    return jsonwebtoken_1.default.sign(payload, `${process.env.jwtRefreshSecret}`, { expiresIn: "15m" });
+    console.log(payload);
+    console.log(process.env.jwtRefreshSecret);
+    return jsonwebtoken_1.default.sign(payload, process.env.jwtRefreshSecret, { expiresIn: "7d" });
 };
 exports.sendRefreshToken = (res, token) => {
     res.cookie("jid", token, { httpOnly: true });

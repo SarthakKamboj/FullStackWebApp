@@ -183,6 +183,7 @@ let UserResolver = class UserResolver {
                 }
             }
             auth_1.sendRefreshToken(res, auth_1.createRefreshToken(user));
+            console.log(user.username);
             return {
                 user,
                 accessToken: auth_1.createAccessToken(user),

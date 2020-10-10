@@ -37,25 +37,27 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     }));
     app.use(cookie_parser_1.default());
     app.post("/refresh_token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        console.log(req.cookies);
         const refreshToken = req.cookies.jid;
         if (!refreshToken) {
-            res.sendStatus(400);
+            res.send({ "error": "refreshToken not included" }).sendStatus(400);
         }
         let payload = null;
+        console.log(refreshToken);
         try {
             payload = jsonwebtoken_1.default.verify(refreshToken, process.env.jwtRefreshSecret);
         }
         catch (err) {
-            console.log("error caused by refresh token");
-            console.log(err);
-            return res.send({ ok: false, accessToken: "" });
+            return res.send({ ok: false, accessToken: "refresh token not valid" });
         }
         const user = yield orm.em.findOne(User_1.User, { id: payload.userId });
         if (!user) {
-            return res.send({ ok: false, accessToken: "" });
+            return res.send({ ok: false, accessToken: "", error: "user does not exist" });
         }
         if (user.tokenVersion !== payload.tokenVersion) {
-            return res.send({ ok: false, accessToken: "" });
+            console.log("user token version " + user.tokenVersion);
+            console.log("payload token version " + payload.tokenVersion);
+            return res.send({ ok: false, accessToken: "", error: "token version not valid" });
         }
         auth_1.sendRefreshToken(res, auth_1.createRefreshToken(user));
         return res.send({ ok: true, accessToken: auth_1.createAccessToken(user) });

@@ -13,12 +13,17 @@ export const createAccessToken = (user: User): string => {
 }
 
 export const createRefreshToken = (user: User): string => {
+    console.log(user);
     const payload = {
         userId: user.id,
-        tokenVersion: user.tokenVersion,
+        // @ts-ignore
+        tokenVersion: user.token_version,
     }
 
-    return jwt.sign(payload,`${process.env.jwtRefreshSecret}`,{expiresIn: "15m"});
+    console.log(payload)
+
+    console.log(process.env.jwtRefreshSecret!);
+    return jwt.sign(payload,process.env.jwtRefreshSecret!,{expiresIn: "7d"});
 }
 
 export const sendRefreshToken = (res:e.Response, token: string) => {
